@@ -38,9 +38,14 @@ public final class MachineState {
     public short bak = 0;
 
     /**
-     * The port last read from.
+     * The current dyn port
      */
-    public Optional<Port> last = Optional.empty();
+    public Optional<Port> dyn = Optional.empty();
+
+    /**
+     * Dyn mode flag
+     */
+    public boolean dynEnabled = true;
 
     /**
      * Lines of original code this state was compiled from.
@@ -55,7 +60,8 @@ public final class MachineState {
     public static final String TAG_PC = "pc";
     public static final String TAG_ACC = "acc";
     public static final String TAG_BAK = "bak";
-    public static final String TAG_LAST = "last";
+    public static final String TAG_DYN = "dyn";
+    public static final String TAG_DYNENABLED = "dynenabled";
 
     /**
      * List of instructions (the program) stored in the machine.
@@ -92,7 +98,7 @@ public final class MachineState {
         pc = 0;
         acc = 0;
         bak = 0;
-        last = Optional.empty();
+        dyn = Optional.empty();
         instructions.forEach(Instruction::reset);
     }
 
@@ -124,11 +130,12 @@ public final class MachineState {
         pc = nbt.getInteger(TAG_PC);
         acc = nbt.getShort(TAG_ACC);
         bak = nbt.getShort(TAG_BAK);
-        if (nbt.hasKey(TAG_LAST)) {
-            last = Optional.of(EnumUtils.readFromNBT(Port.class, TAG_LAST, nbt));
+        if (nbt.hasKey(TAG_DYN)) {
+            dyn = Optional.of(EnumUtils.readFromNBT(Port.class, TAG_DYN, nbt));
         } else {
-            last = Optional.empty();
+            dyn = Optional.empty();
         }
+        dynEnabled = nbt.getBoolean(TAG_DYNENABLED);
 
         validate();
     }
@@ -137,7 +144,8 @@ public final class MachineState {
         nbt.setInteger(TAG_PC, pc);
         nbt.setShort(TAG_ACC, acc);
         nbt.setShort(TAG_BAK, bak);
-        last.ifPresent(port -> EnumUtils.writeToNBT(port, TAG_LAST, nbt));
+        dyn.ifPresent(port -> EnumUtils.writeToNBT(port, TAG_DYN, nbt));
+        nbt.setBoolean(TAG_DYNENABLED, dynEnabled);
 
         if (code != null) {
             nbt.setString(TAG_CODE, String.join("\n", (CharSequence[]) code));

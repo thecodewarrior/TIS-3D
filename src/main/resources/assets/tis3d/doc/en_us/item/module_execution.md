@@ -27,8 +27,8 @@ Port. These represent the four ports of the execution module. Operation on the e
 `ANY`
 Virtual port. This is a pseudo-target that will perform an operation on all ports simultaneously, but will only actually perform an operation on the first port to finish the operation. For example, `MOV 10 ANY` will begin writing the value 10 to all ports, but as soon as it was read from one port, it can no longer be read from all other ports; the write operation on all ports will effectively be canceled after one succeeded.
 
-`LAST`
-Virtual port. This is a pseudo-target that will store the *actual* port that finished the last operation that used the `ANY` pseudo-target.
+`DYN`
+Virtual port. This is a pseudo-target that can be set through code to any real port or `NIL`. By default it will point to the *actual* port that finished the last operation that used the `ANY` pseudo-target.
 
 ## Language Specification
 In addition to a list of instructions, assembler code provided to an execution module may contain metadata. Comments are textual notes in the code that are completely ignored in the execution of the program. Labels mark positions in the code that can be addressed by jump instructions. Comments, labels and blank lines have no influence on the addressing of the compiled program. This is relevant when using the `JRO` instruction.
@@ -53,6 +53,16 @@ Example:
 ### Instructions
 `NOP`
 Pseudo-instruction that has no effect on the state of the execution module's ports nor registers, i.e. no influence on state. `NOP` is automatically compiled to `ADD NIL`.
+
+`DYM <SRC>`
+Enables or disables DYN mode. If the value of `SRC` is zero, disables DYN mode, otherwise enables DYN mode. By default DYN mode is *on*.
+When DYN mode is disabled, reading and writing to `DYN` modifies the port it points to. The read value of `DYN` when not it DYN mode always between -1 and 3. If a value less than -1 is written to `DYN` it will be clamped to -1. If a value greater than 3 is written to `DYN` it will be wrapped by selecting only the first two bits, meaning that to rotate clockwise you only have to add to the value and write it back. The number to port mapping is as follows:
+`-1=NIL, 0=UP, 1=RIGHT, 2=DOWN, 3=LEFT`
+Example:
+`DYM 0` Disables DYN mode.
+`MOV 2 DYN` Sets DYN to output on `DOWN`.
+`DYM 1` Enables DYN mode.
+`MOV 100 DYN` Writes 100 on `DOWN`.
 
 #### Data Transfer
 `MOV <SRC> <DST>`

@@ -18,7 +18,7 @@ public enum Target {
     UP,
     DOWN,
     ANY,
-    LAST;
+    DYN;
 
     public static final Set<Target> VALID_TARGETS = Arrays.stream(Target.values()).filter(t -> t != BAK).collect(Collectors.toSet());
 
